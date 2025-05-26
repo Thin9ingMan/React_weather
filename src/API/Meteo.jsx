@@ -1,5 +1,5 @@
 import { fetchWeatherApi } from 'openmeteo';
-import { useSetDateWeather, useLocation } from '../Context/Provider';
+import { useSetDateWeather, useLocation, useSetHourWeather } from '../Context/Provider';
 import { useEffect } from 'react';
 
 const params = {
@@ -67,25 +67,29 @@ const Meteo=()=>{
                 },
             };
                 // `weatherData` now contains a simple structure with arrays for datetime and weather data
-
-            // for (let i = 0; i < weatherData.hourly.time.length; i++) {
-            //     console.log(
-            //         weatherData.hourly.time[i].toISOString(),//日付, 時間
-            //         weatherData.hourly.temperature2m[i],//温度
-            //         weatherData.hourly.precipitationProbability[i],//前の時間の降水確率
-            //         weatherData.hourly.precipitation[i]//降水量
-            //     );
-            // }
+            
             let newList=[];
             for (let i = 0; i < weatherData.daily.time.length; i++) {
-                const Date = weatherData.daily.time[i].toISOString()//日付
-                const prePro = weatherData.daily.precipitationProbabilityMax[i]//降水確率
-                const rainSum = weatherData.daily.precipitationSum[i]//日降水量の合計
-                const tempMax = Math.round(weatherData.daily.temperature2mMax[i]*10)/10//最高気温
-                const tempMin = Math.round(weatherData.daily.temperature2mMin[i]*10)/10//最高気温
+                const Date = weatherData.daily.time[i].toISOString().split("T")[0].split("-").slice(1).join("/");//日付
+                const prePro = weatherData.daily.precipitationProbabilityMax[i];//降水確率
+                const rainSum = Math.round(weatherData.daily.precipitationSum[i]*10)/10;//日降水量の合計
+                const tempMax = Math.round(weatherData.daily.temperature2mMax[i]*10)/10;//最高気温
+                const tempMin = Math.round(weatherData.daily.temperature2mMin[i]*10)/10;//最高気温
+                // 1時間当たりの情報
+                const hourList=[];//一日の時間情報、24時間分含まれる
+                for (let j = i*24; j < weatherData.hourly.time.length && j<=i*24+23; j++) {  
+                    const hour=weatherData.hourly.time[j].toISOString().split("T")[1].split(":00.")[0];//日付, 時間
+                    const hour_temperature=Math.round(weatherData.hourly.temperature2m[j]*10)/10;//温度
+                    const hour_pro=weatherData.hourly.precipitationProbability[j];//前の時間の降水確率
+                    const hour_rainsum=Math.round(weatherData.hourly.precipitation[j]*10)/10;//降水量
 
+                    const hourObj={hour: hour, hour_temperature: hour_temperature, hour_pro: hour_pro,
+                        hour_rainsum: hour_rainsum
+                    };
+                    hourList.push(hourObj);
+                }
                 const newObj={Date: Date, precipitationProbability: prePro, rainSum: rainSum,
-                            temperatureMax: tempMax, temperatureMin: tempMin};
+                            temperatureMax: tempMax, temperatureMin: tempMin, hourList: hourList};
                 newList=[...newList, newObj];
             };
             setDateWeather(newList);

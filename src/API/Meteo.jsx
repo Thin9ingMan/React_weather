@@ -1,5 +1,5 @@
 import { fetchWeatherApi } from 'openmeteo';
-import { useSetDateWeather, useLocation, useSetHourWeather } from '../Context/Provider';
+import { useSetDateWeather, useLocation } from '../Context/Provider';
 import { useEffect } from 'react';
 
 const params = {
